@@ -16,24 +16,6 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
-# ---- Signal ----
-ENV XDG_DATA_HOME=/var/lib/signal-cli
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates curl tar gzip \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
-
-RUN VERSION=$(curl -Ls https://api.github.com/repos/AsamK/signal-cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p') && \
-    curl -L -o /tmp/signal-cli.tar.gz \
-      https://github.com/AsamK/signal-cli/releases/download/v"${VERSION}"/signal-cli-"${VERSION}"-Linux-native.tar.gz && \
-    mkdir -p /opt && \
-    tar xf /tmp/signal-cli.tar.gz -C /opt && \
-    SIGDIR="$(find /opt -maxdepth 1 -type d -name 'signal-cli-*' | head -n 1)" && \
-    ln -sf "${SIGDIR}/bin/signal-cli" /usr/local/bin/signal-cli && \
-    chmod +x "${SIGDIR}/bin/signal-cli" /usr/local/bin/signal-cli && \
-    rm -f /tmp/signal-cli.tar.gz
-
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY patches ./patches
