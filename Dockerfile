@@ -29,10 +29,19 @@ RUN OPENCLAW_A2UI_SKIP_MISSING=1 pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:build
 
+# Install signal-cli native binary (no Java required)
+RUN SIGNAL_CLI_VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/AsamK/signal-cli/releases/latest | sed -e 's/^.*\/v//') && \
+    curl -L -o /tmp/signal-cli.tar.gz "https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_VERSION}/signal-cli-${SIGNAL_CLI_VERSION}-Linux-native.tar.gz" && \
+    tar xf /tmp/signal-cli.tar.gz -C /opt && \
+    ln -sf /opt/signal-cli /usr/local/bin/signal-cli && \
+    rm /tmp/signal-cli.tar.gz
+
 ENV NODE_ENV=production
 
 # Allow non-root user to write temp files during runtime/tests.
-RUN chown -R node:node /app
+RUN chown -R node:node /app && \
+    mkdir -p /home/node/.local/share/signal-cli && \
+    chown -R node:node /home/node/.local/share/signal-cli
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
