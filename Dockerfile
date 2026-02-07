@@ -24,14 +24,14 @@ RUN apt-get update && \
       ca-certificates curl tar gzip \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-RUN VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/AsamK/signal-cli/releases/latest | sed -e 's/^.*\/v//') && \
+RUN VERSION=$(curl -Ls https://api.github.com/repos/AsamK/signal-cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p') && \
     curl -L -o /tmp/signal-cli.tar.gz \
       https://github.com/AsamK/signal-cli/releases/download/v"${VERSION}"/signal-cli-"${VERSION}"-Linux-native.tar.gz && \
     mkdir -p /opt && \
     tar xf /tmp/signal-cli.tar.gz -C /opt && \
-    ln -sf /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
-    chmod +x /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
-    /usr/local/bin/signal-cli --version && \
+    SIGDIR="$(find /opt -maxdepth 1 -type d -name 'signal-cli-*' | head -n 1)" && \
+    ln -sf "${SIGDIR}/bin/signal-cli" /usr/local/bin/signal-cli && \
+    chmod +x "${SIGDIR}/bin/signal-cli" /usr/local/bin/signal-cli && \
     rm -f /tmp/signal-cli.tar.gz
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
