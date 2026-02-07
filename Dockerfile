@@ -16,6 +16,26 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
+# Signal
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates curl tar gzip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Java 21 (required by Signal)
+COPY --from=eclipse-temurin:21-jre /opt/java/openjdk /opt/java/openjdk
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="/opt/java/openjdk/bin:${PATH}"
+
+# Install Signal
+RUN curl -fsSL https://github.com/AsamK/signal-cli/releases/latest/download/signal-cli.tar.gz \
+    -o /tmp/signal-cli.tar.gz && \
+    mkdir -p /opt/signal-cli && \
+    tar -xzf /tmp/signal-cli.tar.gz -C /opt/signal-cli --strip-components=1 && \
+    ln -sf /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
+    chmod 755 /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
+    rm /tmp/signal-cli.tar.gz
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY patches ./patches
