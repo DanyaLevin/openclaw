@@ -20,7 +20,7 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
 ENV XDG_DATA_HOME=/var/lib/signal-cli
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates curl tar gzip default-jre-headless \
+      ca-certificates curl tar gzip openjdk-21-jre-headless \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN set -eux; \
