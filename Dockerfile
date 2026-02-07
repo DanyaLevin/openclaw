@@ -31,6 +31,18 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# ---- Signal ----
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      default-jre-headless \
+      curl \
+      ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -L https://github.com/AsamK/signal-cli/releases/latest/download/signal-cli \
+    -o /usr/local/bin/signal-cli && \
+    chmod +x /usr/local/bin/signal-cli
+
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 
