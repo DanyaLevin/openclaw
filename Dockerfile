@@ -30,6 +30,8 @@ RUN VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/AsamK
     mkdir -p /opt && \
     tar xf /tmp/signal-cli.tar.gz -C /opt && \
     ln -sf /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
+    chmod +x /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
+    /usr/local/bin/signal-cli --version && \
     rm -f /tmp/signal-cli.tar.gz
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
