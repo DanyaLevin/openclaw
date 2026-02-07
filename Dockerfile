@@ -16,6 +16,22 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
 
+# ---- Signal ----
+ENV XDG_DATA_HOME=/var/lib/signal-cli
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates curl tar gzip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+RUN VERSION=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/AsamK/signal-cli/releases/latest | sed -e 's/^.*\/v//') && \
+    curl -L -o /tmp/signal-cli.tar.gz \
+      https://github.com/AsamK/signal-cli/releases/download/v"${VERSION}"/signal-cli-"${VERSION}"-Linux-native.tar.gz && \
+    mkdir -p /opt && \
+    tar xf /tmp/signal-cli.tar.gz -C /opt && \
+    ln -sf /opt/signal-cli/bin/signal-cli /usr/local/bin/signal-cli && \
+    rm -f /tmp/signal-cli.tar.gz
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY patches ./patches
@@ -31,20 +47,10 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
-# ---- Signal ----
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      default-jre-headless \
-      curl \
-      ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -L https://github.com/AsamK/signal-cli/releases/latest/download/signal-cli \
-    -o /usr/local/bin/signal-cli && \
-    chmod +x /usr/local/bin/signal-cli
-
 # Allow non-root user to write temp files during runtime/tests.
-RUN chown -R node:node /app
+RUN chown -R node:node /app && \
+    mkdir -p /var/lib/signal-cli && \
+    chown -R node:node /var/lib/signal-cli
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
